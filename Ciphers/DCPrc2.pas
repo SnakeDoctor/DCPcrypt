@@ -34,7 +34,7 @@ type
     KeyData: array[0..63] of word;
     procedure InitKey(const Key; Size: longword); override;
   public
-    class function GetID: integer; override;
+    class function GetId: integer; override;
     class function GetAlgorithm: string; override;
     class function GetMaxKeySize: integer; override;
     class function SelfTest: boolean; override;
@@ -50,6 +50,8 @@ implementation
 {$R-}{$Q-}
 
 {$I DCPrc2.inc}
+
+{$POINTERMATH ON}
 
 function LRot16(a, n: word): word;
 begin
@@ -94,6 +96,7 @@ var
   Cipher: TDCP_rc2;
   Data: array[0..7] of byte;
 begin
+  FillChar(Data, SizeOf(Data), 0);
   Cipher:= TDCP_rc2.Create(nil);
   Cipher.Init(Key1,Sizeof(Key1)*8,nil);
   Cipher.EncryptECB(InData1,Data);
@@ -115,6 +118,7 @@ var
   i: longword;
   KeyB: array[0..127] of byte;
 begin
+  FillChar(KeyB, SizeOf(KeyB), 0);
   Move(Key,KeyB,Size div 8);
   for i:= (Size div 8) to 127 do
     KeyB[i]:= sBox[(KeyB[i-(Size div 8)]+KeyB[i-1]) and $FF];
@@ -136,7 +140,7 @@ begin
   if not fInitialized then
     raise EDCP_blockcipher.Create('Cipher not initialized');
   Pdword(@w[0])^:= Pdword(@InData)^;
-  Pdword(@w[2])^:= Pdword(longword(@InData)+4)^;
+  Pdword(@w[2])^:= Pdword(PByte(@InData)+4)^;
   for i:= 0 to 15 do
   begin
     j:= i*4;
@@ -153,7 +157,7 @@ begin
     end;
   end;
   Pdword(@OutData)^:= Pdword(@w[0])^;
-  Pdword(longword(@OutData)+4)^:= Pdword(@w[2])^;
+  Pdword(PByte(@OutData)+4)^:= Pdword(@w[2])^;
 end;
 
 procedure TDCP_rc2.DecryptECB(const InData; var OutData);
@@ -164,7 +168,7 @@ begin
   if not fInitialized then
     raise EDCP_blockcipher.Create('Cipher not initialized');
   Pdword(@w[0])^:= Pdword(@InData)^;
-  Pdword(@w[2])^:= Pdword(longword(@InData)+4)^;
+  Pdword(@w[2])^:= Pdword(PByte(@InData)+4)^;
   for i:= 15 downto 0 do
   begin
     j:= i*4;
@@ -181,7 +185,7 @@ begin
     end;
   end;
   Pdword(@OutData)^:= Pdword(@w[0])^;
-  Pdword(longword(@OutData)+4)^:= Pdword(@w[2])^;
+  Pdword(PByte(@OutData)+4)^:= Pdword(@w[2])^;
 end;
 
 end. 

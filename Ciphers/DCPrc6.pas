@@ -52,6 +52,8 @@ type
 implementation
 {$R-}{$Q-}
 
+{$POINTERMATH ON}
+
 const
   sBox: array[0..51] of DWord= (
     $B7E15163,$5618CB1C,$F45044D5,$9287BE8E,$30BF3847,$CEF6B200,
@@ -109,6 +111,7 @@ var
   Cipher: TDCP_rc6;
   Data: array[0..15] of byte;
 begin
+  FillChar(Data, SizeOf(Data), 0);
   Cipher:= TDCP_rc6.Create(nil);
   Cipher.Init(Key1,Sizeof(Key1)*8,nil);
   Cipher.EncryptECB(Plain1,Data);
@@ -171,9 +174,9 @@ begin
   if not fInitialized then
     raise EDCP_blockcipher.Create('Cipher not initialized');
   x0:= PDword(@InData)^;
-  x1:= PDword(longword(@InData)+4)^;
-  x2:= PDword(longword(@InData)+8)^;
-  x3:= PDword(longword(@InData)+12)^;
+  x1:= PDword(PByte(@InData)+4)^;
+  x2:= PDword(PByte(@InData)+8)^;
+  x3:= PDword(PByte(@InData)+12)^;
   x1:= x1 + KeyData[0];
   x3:= x3 + KeyData[1];
   for i:= 1 to NUMROUNDS do
@@ -187,9 +190,9 @@ begin
   x0:= x0 + KeyData[(2*NUMROUNDS)+2];
   x2:= x2 + KeyData[(2*NUMROUNDS)+3];
   PDword(@OutData)^:= x0;
-  PDword(longword(@OutData)+4)^:= x1;
-  PDword(longword(@OutData)+8)^:= x2;
-  PDword(longword(@OutData)+12)^:= x3;
+  PDword(PByte(@OutData)+4)^:= x1;
+  PDword(PByte(@OutData)+8)^:= x2;
+  PDword(PByte(@OutData)+12)^:= x3;
 end;
 
 procedure TDCP_rc6.DecryptECB(const InData; var OutData);
@@ -201,9 +204,9 @@ begin
   if not fInitialized then
     raise EDCP_blockcipher.Create('Cipher not initialized');
   x0:= PDword(@InData)^;
-  x1:= PDword(longword(@InData)+4)^;
-  x2:= PDword(longword(@InData)+8)^;
-  x3:= PDword(longword(@InData)+12)^;
+  x1:= PDword(PByte(@InData)+4)^;
+  x2:= PDword(PByte(@InData)+8)^;
+  x3:= PDword(PByte(@InData)+12)^;
   x2:= x2 - KeyData[(2*NUMROUNDS)+3];
   x0:= x0 - KeyData[(2*NUMROUNDS)+2];
   for i:= NUMROUNDS downto 1 do
@@ -217,9 +220,9 @@ begin
   x3:= x3 - KeyData[1];
   x1:= x1 - KeyData[0];
   PDword(@OutData)^:= x0;
-  PDword(longword(@OutData)+4)^:= x1;
-  PDword(longword(@OutData)+8)^:= x2;
-  PDword(longword(@OutData)+12)^:= x3;
+  PDword(PByte(@OutData)+4)^:= x1;
+  PDword(PByte(@OutData)+8)^:= x2;
+  PDword(PByte(@OutData)+12)^:= x3;
 end;
 
 end.

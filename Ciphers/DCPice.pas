@@ -47,7 +47,7 @@ type
   protected
     procedure InitKey(const Key; Size: longword); override;
   public
-    class function GetID: integer; override;
+    class function GetId: integer; override;
     class function GetAlgorithm: string; override;
     class function GetMaxKeySize: integer; override;
     class function SelfTest: boolean; override;
@@ -57,7 +57,7 @@ type
   protected
     procedure InitKey(const Key; Size: longword); override;
   public
-    class function GetID: integer; override;
+    class function GetId: integer; override;
     class function GetAlgorithm: string; override;
     class function GetMaxKeySize: integer; override;
     class function SelfTest: boolean; override;
@@ -67,7 +67,7 @@ type
   protected
     procedure InitKey(const Key; Size: longword); override;
   public
-    class function GetID: integer; override;
+    class function GetId: integer; override;
     class function GetAlgorithm: string; override;
     class function GetMaxKeySize: integer; override;
     class function SelfTest: boolean; override;
@@ -77,6 +77,8 @@ type
 {******************************************************************************}
 implementation
 {$R-}{$Q-}
+
+{$POINTERMATH ON}
 
 var
   ice_sbox: array[0..3,0..1023] of dword;
@@ -240,7 +242,7 @@ begin
 
   if rounds= 8 then
   begin
-    for i:= 0 to 4 do
+    for i:= 0 to 3 do // Adrien Reboisson - was "for i:= 0 to 4 do"
       kb[3 - i]:= (keyb[i*2] shl 8) or keyb[i*2 + 1];
     key_sched_build(@kb,0,@ice_keyrot);
   end
@@ -270,7 +272,7 @@ begin
   if not fInitialized then
     raise EDCP_blockcipher.Create('Cipher not initialized');
   l:= SwapDWord(Pdword(@InData)^);
-  r:= SwapDWord(Pdword(longword(@InData)+4)^);
+  r:= SwapDWord(Pdword(PByte(@InData)+4)^);
   i:= 0;
   while i< rounds do
   begin
@@ -279,7 +281,7 @@ begin
     Inc(i,2);
   end;
   Pdword(@OutData)^:= SwapDWord(r);
-  Pdword(longword(@OutData)+4)^:= SwapDWord(l);
+  Pdword(PByte(@OutData)+4)^:= SwapDWord(l);
 end;
 
 procedure TDCP_customice.DecryptECB(const InData; var OutData);
@@ -290,7 +292,7 @@ begin
   if not fInitialized then
     raise EDCP_blockcipher.Create('Cipher not initialized');
   l:= SwapDWord(Pdword(@InData)^);
-  r:= SwapDWord(Pdword(longword(@InData)+4)^);
+  r:= SwapDWord(Pdword(PByte(@InData)+4)^);
   i:= rounds-1;
   while i> 0 do
   begin
@@ -299,7 +301,7 @@ begin
     Dec(i,2);
   end;
   Pdword(@OutData)^:= SwapDWord(r);
-  Pdword(longword(@OutData)+4)^:= SwapDWord(l);
+  Pdword(PByte(@OutData)+4)^:= SwapDWord(l);
 end;
 
 constructor TDCP_customice.Create(AOwner: TComponent);
@@ -337,6 +339,7 @@ var
   Cipher: TDCP_ice;
   Data: array[0..7] of byte;
 begin
+  FillChar(Data, SizeOf(Data), 0);
   Cipher:= TDCP_ice.Create(nil);
   Cipher.Init(Key1,Sizeof(Key1)*8,nil);
   Cipher.EncryptECB(InData1,Data);
@@ -378,6 +381,7 @@ var
   Cipher: TDCP_thinice;
   Data: array[0..7] of byte;
 begin
+  FillChar(Data, SizeOf(Data), 0);
   Cipher:= TDCP_thinice.Create(nil);
   Cipher.Init(Key1,Sizeof(Key1)*8,nil);
   Cipher.EncryptECB(InData1,Data);
@@ -420,6 +424,7 @@ var
   Cipher: TDCP_ice2;
   Data: array[0..7] of byte;
 begin
+  FillChar(Data, SizeOf(Data), 0);
   Cipher:= TDCP_ice2.Create(nil);
   Cipher.Init(Key1,Sizeof(Key1)*8,nil);
   Cipher.EncryptECB(InData1,Data);

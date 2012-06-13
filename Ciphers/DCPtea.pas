@@ -34,7 +34,7 @@ type
     KeyData: array[0..3] of dword;
     procedure InitKey(const Key; Size: longword); override;
   public
-    class function GetID: integer; override;
+    class function GetId: integer; override;
     class function GetAlgorithm: string; override;
     class function GetMaxKeySize: integer; override;
     class function SelfTest: boolean; override;
@@ -49,8 +49,10 @@ type
 implementation
 {$R-}{$Q-}
 
+{$POINTERMATH ON}
+
 const
-  Delta= $9e3779b9;
+  Delta: DWord = $9e3779b9;
   Rounds= 32;
 
 function SwapDword(a: dword): dword;
@@ -81,6 +83,7 @@ var
   Data: array[0..1] of dword;
   Cipher: TDCP_tea;
 begin
+  FillChar(Data, SizeOf(Data), 0);
   Cipher:= TDCP_tea.Create(nil);
   Cipher.Init(Key,Sizeof(Key)*8,nil);
   Cipher.EncryptECB(PT,Data);
@@ -113,7 +116,7 @@ begin
     raise EDCP_blockcipher.Create('Cipher not initialized');
 
   x:= SwapDWord(pdword(@InData)^);
-  y:= SwapDWord(pdword(longword(@InData)+4)^);
+  y:= SwapDWord(pdword(PByte(@InData)+4)^);
   sum:= 0; a:= KeyData[0]; b:= KeyData[1]; c:= KeyData[2]; d:= KeyData[3];
   for n:= 1 to Rounds do
   begin
@@ -122,7 +125,7 @@ begin
     Inc(y,(x shl 4) + (c xor x) + (sum xor (x shr 5)) + d);
   end;
   pdword(@OutData)^:= SwapDWord(x);
-  pdword(longword(@OutData)+4)^:= SwapDWord(y);
+  pdword(PByte(@OutData)+4)^:= SwapDWord(y);
 end;
 
 procedure TDCP_tea.DecryptECB(const InData; var OutData);
@@ -133,8 +136,12 @@ begin
     raise EDCP_blockcipher.Create('Cipher not initialized');
 
   x:= SwapDWord(pdword(@InData)^);
-  y:= SwapDWord(pdword(longword(@InData)+4)^);
-  sum:= Delta shl 5; a:= KeyData[0]; b:= KeyData[1]; c:= KeyData[2]; d:= KeyData[3];
+  y:= SwapDWord(pdword(PByte(@InData)+4)^);
+  sum:= Delta shl 5;
+  a:= KeyData[0];
+  b:= KeyData[1];
+  c:= KeyData[2];
+  d:= KeyData[3];
   for n:= 1 to Rounds do
   begin
     Dec(y,(x shl 4) + (c xor x) + (sum xor (x shr 5)) + d);
@@ -142,7 +149,7 @@ begin
     Dec(sum,Delta);
   end;
   pdword(@OutData)^:= SwapDWord(x);
-  pdword(longword(@OutData)+4)^:= SwapDWord(y);
+  pdword(PByte(@OutData)+4)^:= SwapDWord(y);
 end;
 
 end.

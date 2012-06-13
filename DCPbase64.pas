@@ -28,10 +28,16 @@ interface
 uses
   Sysutils;
 
-function Base64EncodeStr(const Value: string): string;
+function Base64EncodeStr(const Value: AnsiString): AnsiString; overload;
   { Encode a string into Base64 format }
-function Base64DecodeStr(const Value: string): string;
+function Base64DecodeStr(const Value: AnsiString): AnsiString; overload;
   { Decode a Base64 format string }
+{$IFDEF UNICODE}
+function Base64EncodeStr(const Value: UnicodeString): UnicodeString; overload;
+  { Encode a Unicode string into Base64 format }
+function Base64DecodeStr(const Value: UnicodeString): UnicodeString; overload;
+  { Decode a Base64 format Unicode string }
+{$ENDIF}
 function Base64Encode(pInput: pointer; pOutput: pointer; Size: longint): longint;
   { Encode a lump of raw data (output is (4/3) times bigger than input) }
 function Base64Decode(pInput: pointer; pOutput: pointer; Size: longint): longint;
@@ -81,11 +87,22 @@ begin
   Result:= ((Size+2) div 3) * 4;
 end;
 
-function Base64EncodeStr(const Value: string): string;
+function Base64EncodeStr(const Value: AnsiString): AnsiString;
 begin
   SetLength(Result,((Length(Value)+2) div 3) * 4);
   Base64Encode(@Value[1],@Result[1],Length(Value));
 end;
+
+{$IFDEF UNICODE}
+function Base64EncodeStr(const Value: UnicodeString): UnicodeString;
+var
+  temp: AnsiString;
+begin
+  SetLength(temp,(((Length(Value)*SizeOf(Value[1])+2) div 3) * 4));
+  Base64Encode(@Value[1],@temp[1],Length(Value)*SizeOf(Value[1]));
+  Result:= UnicodeString(temp);
+end;
+{$ENDIF}
 
 function Base64Decode(pInput: pointer; pOutput: pointer; Size: longint): longint;
 var
@@ -129,11 +146,21 @@ begin
   end;
 end;
 
-function Base64DecodeStr(const Value: string): string;
+function Base64DecodeStr(const Value: AnsiString): AnsiString;
 begin
   SetLength(Result,(Length(Value) div 4) * 3);
   SetLength(Result,Base64Decode(@Value[1],@Result[1],Length(Value)));
 end;
 
+{$IFDEF UNICODE}
+function Base64DecodeStr(const Value: UnicodeString): UnicodeString;
+var
+  temp: AnsiString;
+begin
+  temp:= AnsiString(Value);
+  SetLength(Result,(Length(temp) div 4) * 3);
+  SetLength(Result,Base64Decode(@temp[1],@Result[1],Length(temp)) div SizeOf(Result[1]));
+end;
+{$ENDIF}
 
 end.

@@ -52,6 +52,8 @@ type
 implementation
 {$R-}{$Q-}
 
+{$POINTERMATH ON}
+
 const
    sBox: array[0..33] of dword= (
     $B7E15163,$5618CB1C,$F45044D5,$9287BE8E,$30BF3847,$CEF6B200,
@@ -104,6 +106,7 @@ var
   Cipher: TDCP_rc5;
   Data: array[0..1] of dword;
 begin
+  FillChar(Data, SizeOf(Data), 0);
   Cipher:= TDCP_rc5.Create(nil);
   Cipher.Init(Key1,Sizeof(Key1)*8,nil);
   Cipher.EncryptECB(Plain1,Data);
@@ -165,7 +168,7 @@ begin
   if not fInitialized then
     raise EDCP_blockcipher.Create('Cipher not initialized');
   A:= PDword(@InData)^ + KeyData[0];
-  B:= PDword(longword(@InData)+4)^ + KeyData[1];
+  B:= PDword(PByte(@InData)+4)^ + KeyData[1];
   for i:= 1 to NUMROUNDS do
   begin
     A:= A xor B;
@@ -174,7 +177,7 @@ begin
     B:= LRot32(B,A)+KeyData[(2*i)+1];
   end;
   PDword(@OutData)^:= A;
-  PDword(longword(@OutData)+4)^:= B;
+  PDword(PByte(@OutData)+4)^:= B;
 end;
 
 procedure TDCP_rc5.DecryptECB(const InData; var OutData);
@@ -185,7 +188,7 @@ begin
   if not fInitialized then
     raise EDCP_blockcipher.Create('Cipher not initialized');
   A:= PDword(@InData)^;
-  B:= PDword(longword(@InData)+4)^;
+  B:= PDword(PByte(@InData)+4)^;
   for i:= NUMROUNDS downto 1 do
   begin
     B:= RRot32(B-KeyData[(2*i)+1],A);
@@ -194,7 +197,7 @@ begin
     A:= A xor B;
   end;
   PDword(@OutData)^:= A - KeyData[0];
-  PDword(longword(@OutData)+4)^:= B - KeyData[1];
+  PDword(PByte(@OutData)+4)^:= B - KeyData[1];
 end;
 
 end.

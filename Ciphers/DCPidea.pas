@@ -34,7 +34,7 @@ type
     EK, DK: array[0..51] of word;
     procedure InitKey(const Key; Size: longword); override;
   public
-    class function GetID: integer; override;
+    class function GetId: integer; override;
     class function GetAlgorithm: string; override;
     class function GetMaxKeySize: integer; override;
     class function SelfTest: boolean; override;
@@ -48,6 +48,8 @@ type
 {******************************************************************************}
 implementation
 {$R-}{$Q-}
+
+{$POINTERMATH ON}
 
 class function TDCP_idea.GetMaxKeySize: integer;
 begin
@@ -82,6 +84,7 @@ var
   Cipher: TDCP_idea;
   Data: array[0..7] of byte;
 begin
+  FillChar(Data, SizeOf(Data), 0);
   Cipher:= TDCP_idea.Create(nil);
   Cipher.Init(Key1,Sizeof(Key1)*8,nil);
   Cipher.EncryptECB(InData1,Data);
@@ -212,7 +215,7 @@ begin
   if not fInitialized then
     raise EDCP_blockcipher.Create('Cipher not initialized');
   PDword(@X[1])^:= PDword(@InData)^;
-  PDword(@X[3])^:= PDword(dword(@InData)+4)^;
+  PDword(@X[3])^:= PDword(PByte(@InData)+4)^;
   for i:= 1 to 4 do
     x[i]:= (x[i] shl 8) or (x[i] shr 8);
   for i:= 0 to 7 do
@@ -244,7 +247,7 @@ begin
   x[4]:= (x[4] shl 8) or (x[4] shr 8);
   x[2]:= s2;
   PDword(@OutData)^:= PDword(@x[1])^;
-  PDword(dword(@OutData)+4)^:= PDword(@x[3])^;
+  PDword(PByte(@OutData)+4)^:= PDword(@x[3])^;
 end;
 
 procedure TDCP_idea.DecryptECB(const InData; var OutData);
@@ -256,7 +259,7 @@ begin
   if not fInitialized then
     raise EDCP_blockcipher.Create('Cipher not initialized');
   PDword(@X[1])^:= PDword(@InData)^;
-  PDword(@X[3])^:= PDword(dword(@InData)+4)^;
+  PDword(@X[3])^:= PDword(PByte(@InData)+4)^;
   for i:= 1 to 4 do
     x[i]:= (x[i] shl 8) or (x[i] shr 8);
   for i:= 0 to 7 do
@@ -288,7 +291,7 @@ begin
   x[4]:= (x[4] shl 8) or (x[4] shr 8);
   x[2]:= s2;
   PDword(@OutData)^:= PDword(@x[1])^;
-  PDword(dword(@OutData)+4)^:= PDword(@x[3])^;
+  PDword(PByte(@OutData)+4)^:= PDword(@x[3])^;
 end;
 
 

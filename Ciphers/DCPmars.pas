@@ -34,7 +34,7 @@ type
     KeyData: array[0..39] of DWord;
     procedure InitKey(const Key; Size: longword); override;
   public
-    class function GetID: integer; override;
+    class function GetId: integer; override;
     class function GetAlgorithm: string; override;
     class function GetMaxKeySize: integer; override;
     class function SelfTest: boolean; override;
@@ -49,6 +49,8 @@ type
 implementation
 {$R-}{$Q-}
 {$I DCPmars.inc}
+
+{$POINTERMATH ON}
 
 function LRot32(X: DWord; c: longword): DWord;
 begin
@@ -93,6 +95,7 @@ var
   Cipher: TDCP_mars;
   Block: array[0..3] of dword;
 begin
+  FillChar(Block, SizeOf(Block), 0);
   Cipher:= TDCP_mars.Create(nil);
   Cipher.Init(Key1,Sizeof(Key1)*8,nil);
   Cipher.EncryptECB(Plain1,Block);
@@ -138,8 +141,11 @@ var
   t: array[-7..39] of DWord;
   KeyB: array[0..39] of DWord;
 begin
+  m := 0;
   Size:= Size div 8;
   FillChar(KeyB,Sizeof(KeyB),0);
+  FillChar(t, SizeOf(t), 0);
+
   Move(Key,KeyB,Size);
   Size:= Size div 4;
   Move(vk,t,Sizeof(vk));
@@ -186,9 +192,9 @@ begin
   if not fInitialized then
     raise EDCP_blockcipher.Create('Cipher not initialized');
   Blk[0]:= PDWord(@InData)^;
-  Blk[1]:= PDWord(longword(@InData)+4)^;
-  Blk[2]:= PDWord(longword(@InData)+8)^;
-  Blk[3]:= PDWord(longword(@InData)+12)^;
+  Blk[1]:= PDWord(PByte(@InData)+4)^;
+  Blk[2]:= PDWord(PByte(@InData)+8)^;
+  Blk[3]:= PDWord(PByte(@InData)+12)^;
 
   blk[0]:= blk[0] + KeyData[0]; blk[1]:= blk[1] + KeyData[1];
   blk[2]:= blk[2] + KeyData[2]; blk[3]:= blk[3] + KeyData[3];
@@ -436,9 +442,9 @@ begin
   blk[2]:= blk[2] - KeyData[38]; blk[3]:= blk[3] - KeyData[39];
 
   PDWord(@OutData)^:= Blk[0];
-  PDWord(longword(@OutData)+4)^:= Blk[1];
-  PDWord(longword(@OutData)+8)^:= Blk[2];
-  PDWord(longword(@OutData)+12)^:= Blk[3];
+  PDWord(PByte(@OutData)+4)^:= Blk[1];
+  PDWord(PByte(@OutData)+8)^:= Blk[2];
+  PDWord(PByte(@OutData)+12)^:= Blk[3];
 end;
 
 procedure TDCP_mars.DecryptECB(const InData; var OutData);
@@ -449,9 +455,9 @@ begin
   if not fInitialized then
     raise EDCP_blockcipher.Create('Cipher not initialized');
   Blk[0]:= PDWord(@InData)^;
-  Blk[1]:= PDWord(longword(@InData)+4)^;
-  Blk[2]:= PDWord(longword(@InData)+8)^;
-  Blk[3]:= PDWord(longword(@InData)+12)^;
+  Blk[1]:= PDWord(PByte(@InData)+4)^;
+  Blk[2]:= PDWord(PByte(@InData)+8)^;
+  Blk[3]:= PDWord(PByte(@InData)+12)^;
 
   blk[0]:= blk[0] + KeyData[36]; blk[1]:= blk[1] + KeyData[37];
   blk[2]:= blk[2] + KeyData[38]; blk[3]:= blk[3] + KeyData[39];
@@ -699,9 +705,9 @@ begin
   blk[2]:= blk[2] - KeyData[2]; blk[3]:= blk[3] - KeyData[3];
 
   PDWord(@OutData)^:= Blk[0];
-  PDWord(longword(@OutData)+4)^:= Blk[1];
-  PDWord(longword(@OutData)+8)^:= Blk[2];
-  PDWord(longword(@OutData)+12)^:= Blk[3];
+  PDWord(PByte(@OutData)+4)^:= Blk[1];
+  PDWord(PByte(@OutData)+8)^:= Blk[2];
+  PDWord(PByte(@OutData)+12)^:= Blk[3];
 end;
 
 end.

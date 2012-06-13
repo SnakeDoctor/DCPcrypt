@@ -33,7 +33,7 @@ type
   protected
     KeyData, KeyOrg: array[0..255] of byte;
   public
-    class function GetID: integer; override;
+    class function GetId: integer; override;
     class function GetAlgorithm: string; override;
     class function GetMaxKeySize: integer; override;
     class function SelfTest: boolean; override;
@@ -48,6 +48,8 @@ type
 {******************************************************************************}
 implementation
 {$R-}{$Q-}
+
+{$POINTERMATH ON}
 
 class function TDCP_rc4.GetID: integer;
 begin
@@ -73,6 +75,7 @@ var
   Cipher: TDCP_rc4;
   Data: array[0..4] of byte;
 begin
+  FillChar(Data, SizeOf(Data), 0);
   Cipher:= TDCP_rc4.Create(nil);
   Cipher.Init(Key1,Sizeof(Key1)*8,nil);
   Cipher.Encrypt(InData1,Data,Sizeof(Data));
@@ -97,21 +100,21 @@ begin
   while i< 255 do
   begin
     KeyData[i]:= i;
-    xKey[i]:= PByte(longword(@Key)+(i mod Size))^;
+    xKey[i]:= PByte(PByte(@Key)+(i mod Size))^;
     KeyData[i+1]:= i+1;
-    xKey[i+1]:= PByte(longword(@Key)+((i+1) mod Size))^;
+    xKey[i+1]:= PByte(PByte(@Key)+((i+1) mod Size))^;
     KeyData[i+2]:= i+2;
-    xKey[i+2]:= PByte(longword(@Key)+((i+2) mod Size))^;
+    xKey[i+2]:= PByte(PByte(@Key)+((i+2) mod Size))^;
     KeyData[i+3]:= i+3;
-    xKey[i+3]:= PByte(longword(@Key)+((i+3) mod Size))^;
+    xKey[i+3]:= PByte(PByte(@Key)+((i+3) mod Size))^;
     KeyData[i+4]:= i+4;
-    xKey[i+4]:= PByte(longword(@Key)+((i+4) mod Size))^;
+    xKey[i+4]:= PByte(PByte(@Key)+((i+4) mod Size))^;
     KeyData[i+5]:= i+5;
-    xKey[i+5]:= PByte(longword(@Key)+((i+5) mod Size))^;
+    xKey[i+5]:= PByte(PByte(@Key)+((i+5) mod Size))^;
     KeyData[i+6]:= i+6;
-    xKey[i+6]:= PByte(longword(@Key)+((i+6) mod Size))^;
+    xKey[i+6]:= PByte(PByte(@Key)+((i+6) mod Size))^;
     KeyData[i+7]:= i+7;
-    xKey[i+7]:= PByte(longword(@Key)+((i+7) mod Size))^;
+    xKey[i+7]:= PByte(PByte(@Key)+((i+7) mod Size))^;
     Inc(i,8);
   end;
   j:= 0;

@@ -35,7 +35,7 @@ type
     Rounds: longword;
     procedure InitKey(const Key; Size: longword); override;
   public
-    class function GetID: integer; override;
+    class function GetId: integer; override;
     class function GetAlgorithm: string; override;
     class function GetMaxKeySize: integer; override;
     class function SelfTest: boolean; override;
@@ -51,6 +51,8 @@ implementation
 {$R-}{$Q-}
 
 {$I DCPcast128.inc}
+
+{$POINTERMATH ON}
 
 function LRot32(a, n: dword): dword;
 begin
@@ -88,6 +90,7 @@ var
   Block: array[0..7] of byte;
   Cipher: TDCP_cast128;
 begin
+  FillChar(Block, SizeOf(Block), 0);
   Cipher:= TDCP_cast128.Create(nil);
   Cipher.Init(Key,128,nil);
   Cipher.EncryptECB(InBlock,Block);
@@ -120,7 +123,7 @@ begin
     Rounds:= 12
   else
     Rounds:= 16;
-  FillChar(x,Sizeof(x),0);
+  FillChar(x, Sizeof(x), 0);
   Move(Key,x,Size);
   x[0]:= (x[0] shr 24) or ((x[0] shr 8) and $FF00) or ((x[0] shl 8) and $FF0000) or (x[0] shl 24);
   x[1]:= (x[1] shr 24) or ((x[1] shr 8) and $FF00) or ((x[1] shl 8) and $FF0000) or (x[1] shl 24);
@@ -248,7 +251,7 @@ begin
   if not fInitialized then
     raise EDCP_blockcipher.Create('Cipher not initialized');
   l:= Pdword(@InData)^;
-  r:= Pdword(longword(@InData)+4)^;
+  r:= Pdword(PByte(@InData)+4)^;
   l:= (l shr 24) or ((l shr 8) and $FF00) or ((l shl 8) and $FF0000) or (l shl 24);
   r:= (r shr 24) or ((r shr 8) and $FF00) or ((r shl 8) and $FF0000) or (r shl 24);
   t:= LRot32(KeyData[0]+r, KeyData[0+16]);
@@ -305,7 +308,7 @@ begin
   l:= (l shr 24) or ((l shr 8) and $FF00) or ((l shl 8) and $FF0000) or (l shl 24);
   r:= (r shr 24) or ((r shr 8) and $FF00) or ((r shl 8) and $FF0000) or (r shl 24);
   Pdword(@OutData)^:= r;
-  Pdword(longword(@OutData)+4)^:= l;
+  Pdword(PByte(@OutData)+4)^:= l;
 end;
 
 procedure TDCP_cast128.DecryptECB(const InData; var OutData);
@@ -315,7 +318,7 @@ begin
   if not fInitialized then
     raise EDCP_blockcipher.Create('Cipher not initialized');
   r:= Pdword(@InData)^;
-  l:= Pdword(longword(@InData)+4)^;
+  l:= Pdword(PByte(@InData)+4)^;
   l:= (l shr 24) or ((l shr 8) and $FF00) or ((l shl 8) and $FF0000) or (l shl 24);
   r:= (r shr 24) or ((r shr 8) and $FF00) or ((r shl 8) and $FF0000) or (r shl 24);
   if Rounds> 12 then
@@ -372,7 +375,7 @@ begin
   l:= (l shr 24) or ((l shr 8) and $FF00) or ((l shl 8) and $FF0000) or (l shl 24);
   r:= (r shr 24) or ((r shr 8) and $FF00) or ((r shl 8) and $FF0000) or (r shl 24);
   Pdword(@OutData)^:= l;
-  Pdword(longword(@OutData)+4)^:= r;
+  Pdword(PByte(@OutData)+4)^:= r;
 end;
 
 

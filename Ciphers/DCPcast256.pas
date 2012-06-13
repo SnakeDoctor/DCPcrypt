@@ -50,6 +50,8 @@ implementation
 {$R-}{$Q-}
 {$I DCPcast256.inc}
 
+{$POINTERMATH ON}
+
 function LRot32(a, n: dword): dword;
 begin
   Result:= (a shl n) or (a shr (32-n));
@@ -121,6 +123,7 @@ var
   Block: array[0..15] of byte;
   Cipher: TDCP_cast256;
 begin
+  FillChar(Block, SizeOf(Block), 0);
   Cipher:= TDCP_cast256.Create(nil);
   Cipher.Init(Key1,Sizeof(Key1)*8,nil);
   Cipher.EncryptECB(InBlock1,Block);
@@ -219,9 +222,9 @@ begin
   if not fInitialized then
     raise EDCP_blockcipher.Create('Cipher not initialized');
   A[0]:= PDWord(@InData)^;
-  A[1]:= PDWord(longword(@InData)+4)^;
-  A[2]:= PDWord(longword(@InData)+8)^;
-  A[3]:= PDWord(longword(@InData)+12)^;
+  A[1]:= PDWord(PByte(@InData)+4)^;
+  A[2]:= PDWord(PByte(@InData)+8)^;
+  A[3]:= PDWord(PByte(@InData)+12)^;
 
   A[0]:= SwapDWord(A[0]);
   A[1]:= SwapDWord(A[1]);
@@ -282,9 +285,9 @@ begin
   A[3]:= SwapDWord(A[3]);
 
   PDWord(@OutData)^:= A[0];
-  PDWord(longword(@OutData)+4)^:= A[1];
-  PDWord(longword(@OutData)+8)^:= A[2];
-  PDWord(longword(@OutData)+12)^:= A[3];
+  PDWord(PByte(@OutData)+4)^:= A[1];
+  PDWord(PByte(@OutData)+8)^:= A[2];
+  PDWord(PByte(@OutData)+12)^:= A[3];
 end;
 
 procedure TDCP_cast256.DecryptECB(const InData; var OutData);
@@ -294,9 +297,9 @@ begin
   if not fInitialized then
     raise EDCP_blockcipher.Create('Cipher not initialized');
   A[0]:= PDWord(@InData)^;
-  A[1]:= PDWord(longword(@InData)+4)^;
-  A[2]:= PDWord(longword(@InData)+8)^;
-  A[3]:= PDWord(longword(@InData)+12)^;
+  A[1]:= PDWord(PByte(@InData)+4)^;
+  A[2]:= PDWord(PByte(@InData)+8)^;
+  A[3]:= PDWord(PByte(@InData)+12)^;
 
   A[0]:= SwapDWord(A[0]);
   A[1]:= SwapDWord(A[1]);
@@ -357,9 +360,9 @@ begin
   A[3]:= SwapDWord(A[3]);
 
   PDWord(@OutData)^:= A[0];
-  PDWord(longword(@OutData)+4)^:= A[1];
-  PDWord(longword(@OutData)+8)^:= A[2];
-  PDWord(longword(@OutData)+12)^:= A[3];
+  PDWord(PByte(@OutData)+4)^:= A[1];
+  PDWord(PByte(@OutData)+8)^:= A[2];
+  PDWord(PByte(@OutData)+12)^:= A[3];
 end;
 
 

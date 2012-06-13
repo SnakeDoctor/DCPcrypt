@@ -36,7 +36,7 @@ type
     l_key: array[0..131] of dword;
     procedure InitKey(const Key; Size: longword); override;
   public
-    class function GetID: integer; override;
+    class function GetId: integer; override;
     class function GetAlgorithm: string; override;
     class function GetMaxKeySize: integer; override;
     class function SelfTest: boolean; override;
@@ -50,6 +50,8 @@ type
 {******************************************************************************}
 implementation
 {$R-}{$Q-}
+
+{$POINTERMATH ON}
 
 class function TDCP_serpent.GetID: integer;
 begin
@@ -92,6 +94,7 @@ var
   Block: array[0..15] of byte;
   Cipher: TDCP_serpent;
 begin
+  FillChar(Block, SizeOf(Block), 0);
   Cipher:= TDCP_serpent.Create(nil);
   Cipher.Init(Key1,Sizeof(Key1)*8,nil);
   Cipher.EncryptECB(InData1,Block);
@@ -121,7 +124,7 @@ var
   t, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16, t17: dword;
   a, b, c, d: dword;
 begin
-  FillChar(kp,256 div 8,0);
+  FillChar(kp, SizeOf(kp), 0);
   Move(Key,kp,Size div 8);
   if Size < 256 then
   begin
@@ -176,9 +179,9 @@ begin
     raise EDCP_blockcipher.Create('Cipher not initialized');
 
   a:= PDWord(@InData)^;
-  b:= PDWord(longword(@InData)+4)^;
-  c:= PDWord(longword(@InData)+8)^;
-  d:= PDWord(longword(@InData)+12)^;
+  b:= PDWord(PByte(@InData)+4)^;
+  c:= PDWord(PByte(@InData)+8)^;
+  d:= PDWord(PByte(@InData)+12)^;
 
   i:= 0;
   while i < 32 do
@@ -215,10 +218,10 @@ begin
   end;
   a:= a xor l_key[128]; b:= b xor l_key[128+1]; c:= c xor l_key[128+2]; d:= d xor l_key[128+3];
 
-  PDWord(longword(@OutData)+ 0)^:= a;
-  PDWord(longword(@OutData)+ 4)^:= b;
-  PDWord(longword(@OutData)+ 8)^:= c;
-  PDWord(longword(@OutData)+12)^:= d;
+  PDWord(PByte(@OutData)+ 0)^:= a;
+  PDWord(PByte(@OutData)+ 4)^:= b;
+  PDWord(PByte(@OutData)+ 8)^:= c;
+  PDWord(PByte(@OutData)+12)^:= d;
 end;
 
 procedure TDCP_serpent.DecryptECB(const InData; var OutData);
@@ -231,9 +234,9 @@ begin
     raise EDCP_blockcipher.Create('Cipher not initialized');
 
   a:= PDWord(@InData)^;
-  b:= PDWord(longword(@InData)+4)^;
-  c:= PDWord(longword(@InData)+8)^;
-  d:= PDWord(longword(@InData)+12)^;
+  b:= PDWord(PByte(@InData)+4)^;
+  c:= PDWord(PByte(@InData)+8)^;
+  d:= PDWord(PByte(@InData)+12)^;
 
   i:= 32;
   a:= a xor l_key[4*32]; b:= b xor l_key[4*32+1]; c:= c xor l_key[4*32+2]; d:= d xor l_key[4*32+3]; 
@@ -270,10 +273,10 @@ begin
     Dec(i,8);
   end;
 
-  PDWord(longword(@OutData)+ 0)^:= a;
-  PDWord(longword(@OutData)+ 4)^:= b;
-  PDWord(longword(@OutData)+ 8)^:= c;
-  PDWord(longword(@OutData)+12)^:= d;
+  PDWord(PByte(@OutData)+ 0)^:= a;
+  PDWord(PByte(@OutData)+ 4)^:= b;
+  PDWord(PByte(@OutData)+ 8)^:= c;
+  PDWord(PByte(@OutData)+12)^:= d;
 end;
 
 end.

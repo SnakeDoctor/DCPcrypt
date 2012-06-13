@@ -1,14 +1,9 @@
      =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-     =       DCPcrypt Cryptographic Component Library v2       =
-     =          Copyright (c) 1999-2009 David Barton           =
+     =   DCPcrypt Cryptographic Component Library v2 Beta 3    =
+     =          Copyright (c) 1999-2003 David Barton           =
      =             http://www.cityinthesky.co.uk/              =
      =               crypto@cityinthesky.co.uk                 =
      =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=    
-
-UPDATE:
-
-Included is an update for Delphi 2009 by Henri Gourvest. Note: I have
-not tested this myself (I don't have Delphi 2009)
 
 
 Introduction:

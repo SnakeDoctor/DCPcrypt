@@ -87,14 +87,9 @@ type
       { Update the hash buffer with Size bytes of data from Buffer }
     procedure UpdateStream(Stream: TStream; Size: longword);
       { Update the hash buffer with Size bytes of data from the stream }
-    procedure UpdateStr(const Str: AnsiString); {$IFDEF UNICODE}overload; {$ENDIF}
+    procedure UpdateStr(const Str: string);
       { Update the hash buffer with the string }
-{$IFDEF UNICODE}
-    procedure UpdateStr(const Str: UnicodeString); overload;
-      { Update the hash buffer with the string }
-{$ENDIF}
 
-    
     destructor Destroy; override;
 
   published
@@ -142,12 +137,8 @@ type
 
     procedure Init(const Key; Size: longword; InitVector: pointer); virtual;
       { Do key setup based on the data in Key, size is in bits }
-    procedure InitStr(const Key: AnsiString; HashType: TDCP_hashclass); {$IFDEF UNICODE}overload; {$ENDIF}
+    procedure InitStr(const Key: string; HashType: TDCP_hashclass);
       { Do key setup based on a hash of the key string }
-{$IFDEF UNICODE}
-    procedure InitStr(const Key: UnicodeString; HashType: TDCP_hashclass); overload;
-      { Do key setup based on a hash of the key string }
-{$ENDIF}
     procedure Burn; virtual;
       { Clear all stored key information }
     procedure Reset; virtual;
@@ -160,16 +151,10 @@ type
       { Encrypt size bytes of data from InStream and place in OutStream }
     function DecryptStream(InStream, OutStream: TStream; Size: longword): longword;
       { Decrypt size bytes of data from InStream and place in OutStream }
-    function EncryptString(const Str: AnsiString): AnsiString; {$IFDEF UNICODE}overload; {$ENDIF}virtual;
+    function EncryptString(const Str: string): string; virtual;
       { Encrypt a string and return Base64 encoded }
-    function DecryptString(const Str: AnsiString): AnsiString; {$IFDEF UNICODE}overload; {$ENDIF}virtual;
+    function DecryptString(const Str: string): string; virtual;
       { Decrypt a Base64 encoded string }
-{$IFDEF UNICODE}
-    function EncryptString(const Str: UnicodeString): UnicodeString; overload; virtual;
-      { Encrypt a Unicode string and return Base64 encoded }
-    function DecryptString(const Str: UnicodeString): UnicodeString; overload; virtual;
-      { Decrypt a Base64 encoded Unicode string }
-{$ENDIF}
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -214,17 +199,11 @@ type
       { Encrypt size bytes of data and place in Outdata using CipherMode }
     procedure Decrypt(const Indata; var Outdata; Size: longword); override;
       { Decrypt size bytes of data and place in Outdata using CipherMode }
-    function EncryptString(const Str: AnsiString): AnsiString; overload; override;
+    function EncryptString(const Str: string): string; override;
       { Encrypt a string and return Base64 encoded }
-    function DecryptString(const Str: AnsiString): AnsiString; overload; override;
+    function DecryptString(const Str: string): string; override;
       { Decrypt a Base64 encoded string }
-{$IFDEF UNICODE}
-    function EncryptString(const Str: UnicodeString): UnicodeString; overload; override;
-      { Encrypt a Unicode string and return Base64 encoded }
-    function DecryptString(const Str: UnicodeString): UnicodeString; overload; override;
-      { Decrypt a Base64 encoded Unicode string }
-{$ENDIF}
-    procedure EncryptECB(const Indata; var Outdata); virtual;
+    procedure EncryptECB(const Indata; var Outdata); virtual; 
       { Encrypt a block of data using the ECB method of encryption }
     procedure DecryptECB(const Indata; var Outdata); virtual; 
       { Decrypt a block of data using the ECB method of decryption }
@@ -348,17 +327,10 @@ begin
   end;
 end;
 
-procedure TDCP_hash.UpdateStr(const Str: AnsiString);
+procedure TDCP_hash.UpdateStr(const Str: string);
 begin
   Update(Str[1],Length(Str));
 end;
-
-{$IFDEF UNICODE}
-procedure TDCP_hash.UpdateStr(const Str: UnicodeString);
-begin
-  Update(Str[1],Length(Str)*Sizeof(Str[1]));
-end; { DecryptString }
-{$ENDIF}
 
 destructor TDCP_hash.Destroy;
 begin
@@ -423,7 +395,7 @@ begin
     fInitialized:= true;
 end;
 
-procedure TDCP_cipher.InitStr(const Key: AnsiString; HashType: TDCP_hashclass);
+procedure TDCP_cipher.InitStr(const Key: string; HashType: TDCP_hashclass);
 var
   Hash: TDCP_hash;
   Digest: pointer;
@@ -447,33 +419,6 @@ begin
     raise EDCP_cipher.Create('Unable to allocate sufficient memory for hash digest');
   end;
 end;
-
-{$IFDEF UNICODE}
-procedure TDCP_cipher.InitStr(const Key: UnicodeString; HashType: TDCP_hashclass);
-var
-  Hash: TDCP_hash;
-  Digest: pointer;
-begin
-  if fInitialized then
-    Burn;
-  try
-    GetMem(Digest,HashType.GetHashSize div 8);
-    Hash:= HashType.Create(Self);
-    Hash.Init;
-    Hash.UpdateStr(Key);
-    Hash.Final(Digest^);
-    Hash.Free;
-    if MaxKeySize< HashType.GetHashSize then
-      Init(Digest^,MaxKeySize,nil)
-    else
-      Init(Digest^,HashType.GetHashSize,nil);
-    FillChar(Digest^,HashType.GetHashSize div 8,$FF);
-    FreeMem(Digest);
-  except
-    raise EDCP_cipher.Create('Unable to allocate sufficient memory for hash digest');
-  end;
-end;
-{$ENDIF}
 
 procedure TDCP_cipher.Burn;
 begin
@@ -536,33 +481,18 @@ begin
   end;
 end;
 
-function TDCP_cipher.EncryptString(const Str: AnsiString): AnsiString;
+function TDCP_cipher.EncryptString(const Str: string): string;
 begin
   SetLength(Result,Length(Str));
   Encrypt(Str[1],Result[1],Length(Str));
   Result:= Base64EncodeStr(Result);
 end;
 
-function TDCP_cipher.DecryptString(const Str: AnsiString): AnsiString;
+function TDCP_cipher.DecryptString(const Str: string): string;
 begin
   Result:= Base64DecodeStr(Str);
   Decrypt(Result[1],Result[1],Length(Result));
 end;
-
-{$IFDEF UNICODE}
-function TDCP_cipher.EncryptString(const Str: UnicodeString): UnicodeString;
-begin
-  SetLength(Result,Length(Str));
-  Encrypt(Str[1],Result[1],Length(Str)*SizeOf(Str[1]));
-  Result:= Base64EncodeStr(Result);
-end;
-
-function TDCP_cipher.DecryptString(const Str: UnicodeString): UnicodeString;
-begin
-  Result:= Base64DecodeStr(Str);
-  Decrypt(Result[1],Result[1],Length(Result)*SizeOf(Result[1]));
-end;
-{$ENDIF}
 
 constructor TDCP_cipher.Create(AOwner: TComponent);
 begin
@@ -613,33 +543,18 @@ begin
   end;
 end;
 
-function TDCP_blockcipher.EncryptString(const Str: AnsiString): AnsiString;
+function TDCP_blockcipher.EncryptString(const Str: string): string;
 begin
   SetLength(Result,Length(Str));
   EncryptCFB8bit(Str[1],Result[1],Length(Str));
   Result:= Base64EncodeStr(Result);
 end;
 
-function TDCP_blockcipher.DecryptString(const Str: AnsiString): AnsiString;
+function TDCP_blockcipher.DecryptString(const Str: string): string;
 begin
   Result:= Base64DecodeStr(Str);
   DecryptCFB8bit(Result[1],Result[1],Length(Result));
 end;
-
-{$IFDEF UNICODE}
-function TDCP_blockcipher.EncryptString(const Str: UnicodeString): UnicodeString;
-begin
-  SetLength(Result,Length(Str));
-  EncryptCFB8bit(Str[1],Result[1],Length(Str)*SizeOf(Str[1]));
-  Result:= Base64EncodeStr(Result);
-end;
-
-function TDCP_blockcipher.DecryptString(const Str: UnicodeString): UnicodeString;
-begin
-  Result:= Base64DecodeStr(Str);
-  DecryptCFB8bit(Result[1],Result[1],Length(Result)*SizeOf(Result[1]));
-end;
-{$ENDIF}
 
 procedure TDCP_blockcipher.Decrypt(const Indata; var Outdata; Size: longword);
 begin
